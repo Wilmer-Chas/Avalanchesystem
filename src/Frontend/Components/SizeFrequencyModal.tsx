@@ -1,4 +1,6 @@
 import { useEffect, useMemo } from 'react'
+import { GutenbergRichterChart } from './GutenbergRichterChart'
+import { fitGutenbergRichter, buildGrSeries } from './gutenbergRichter'
 import { PowerLawChart, type PowerLawPoint } from './PowerLawChart'
 import { fitPowerLaw } from './powerLawFit'
 
@@ -15,9 +17,13 @@ export function SizeFrequencyModal({
   data,
   eventCount,
 }: SizeFrequencyModalProps) {
-  const fit = useMemo(
+  const powerFit = useMemo(
     () => fitPowerLaw(data, eventCount),
     [data, eventCount],
+  )
+  const grFit = useMemo(
+    () => fitGutenbergRichter(buildGrSeries(data)),
+    [data],
   )
 
   useEffect(() => {
@@ -52,12 +58,13 @@ export function SizeFrequencyModal({
       <div className="chart-modal-panel">
         <header className="chart-modal-header">
           <div>
-            <h2 id="chart-modal-title">Avalanche size distribution</h2>
+            <h2 id="chart-modal-title">Avalanche statistics</h2>
             <p className="chart-modal-sub">
               {eventCount.toLocaleString()} avalanches recorded
-              {fit
-                ? ` · fitted exponent α ≈ ${fit.alpha.toFixed(2)}`
-                : ' · need a bit more data to fit a line'}
+              {powerFit
+                ? ` · power-law α ≈ ${powerFit.alpha.toFixed(2)}`
+                : ''}
+              {grFit ? ` · GR b ≈ ${grFit.b.toFixed(2)}` : ''}
             </p>
           </div>
           <button type="button" className="ctrl-btn" onClick={onClose}>
@@ -70,34 +77,63 @@ export function SizeFrequencyModal({
             <span className="chart-key-dot" /> Yellow dots = your measured data
           </span>
           <span className="chart-key-item">
-            <span className="chart-key-line" /> Blue line = power-law fit to those
-            dots
+            <span className="chart-key-line" /> Blue line = fit to those dots
           </span>
         </div>
 
-        <PowerLawChart data={data} eventCount={eventCount} large />
+        <section className="chart-section" aria-labelledby="power-law-heading">
+          <h3 id="power-law-heading" className="chart-section-title">
+            Size distribution (power law)
+          </h3>
+          <PowerLawChart data={data} eventCount={eventCount} large />
+          <div className="chart-modal-legend">
+            <p>
+              <strong>Across → Avalanche size</strong> — how many cells broke in
+              one cascade.
+            </p>
+            <p>
+              <strong>Up → Share of all quakes</strong> — out of every quake
+              recorded, what fraction had this size. Example: 0.10 means about 1
+              in 10 quakes was this big.
+            </p>
+            <p>
+              <strong>Blue line</strong> is the best straight line on this log–log
+              chart:{' '}
+              <em>
+                share ≈ constant / size
+                {powerFit ? `^${powerFit.alpha.toFixed(2)}` : '^α'}
+              </em>
+              . Many small avalanches, few large ones.
+            </p>
+          </div>
+        </section>
 
-        <div className="chart-modal-legend">
-          <p>
-            <strong>Across → Avalanche size</strong> — how many cells broke in
-            one cascade.
-          </p>
-          <p>
-            <strong>Up → Share of all quakes</strong> — out of every quake
-            recorded, what fraction had this size. Example: 0.10 means about 1
-            in 10 quakes was this big.
-          </p>
-          <p>
-            <strong>Blue line</strong> is calculated from the yellow dots: the
-            best straight line on this log–log chart, which means{' '}
-            <em>
-              share ≈ constant / size
-              {fit ? `^${fit.alpha.toFixed(2)}` : '^α'}
-            </em>
-            . When the dots hug that line, the model is showing a clear power
-            law — many small avalanches, few large ones.
-          </p>
-        </div>
+        <section className="chart-section" aria-labelledby="gr-heading">
+          <h3 id="gr-heading" className="chart-section-title">
+            Gutenberg–Richter style (model magnitude)
+            {grFit ? ` · b ≈ ${grFit.b.toFixed(2)}` : ''}
+          </h3>
+          <GutenbergRichterChart data={data} eventCount={eventCount} large />
+          <div className="chart-modal-legend">
+            <p>
+              <strong>Across → Model magnitude</strong> — a log label for size:{' '}
+              <em>M = log₁₀(avalanche size)</em>. Bigger cascade → higher M. This
+              is a teaching stand-in, not a real seismograph Richter reading.
+            </p>
+            <p>
+              <strong>Up → Quakes this big or bigger</strong> — cumulative count
+              of avalanches at least that magnitude (how catalogs often talk).
+            </p>
+            <p>
+              <strong>Blue line</strong> is the Gutenberg–Richter-style fit:{' '}
+              <em>
+                log₁₀(N) ≈ a − b·M
+                {grFit ? ` with b ≈ ${grFit.b.toFixed(2)}` : ''}
+              </em>
+              . A steeper b means large events are rarer relative to small ones.
+            </p>
+          </div>
+        </section>
       </div>
     </div>
   )
