@@ -1,8 +1,12 @@
 import { useEffect, useMemo } from 'react'
 import { GutenbergRichterChart } from './GutenbergRichterChart'
-import { fitGutenbergRichter, buildGrSeries } from './gutenbergRichter'
+import {
+  buildGrSeries,
+  fitGutenbergRichter,
+  formatGrEquation,
+} from './gutenbergRichter'
 import { PowerLawChart, type PowerLawPoint } from './PowerLawChart'
-import { fitPowerLaw } from './powerLawFit'
+import { fitPowerLaw, formatPowerLawEquation } from './powerLawFit'
 
 interface SizeFrequencyModalProps {
   open: boolean
@@ -86,6 +90,20 @@ export function SizeFrequencyModal({
             Size distribution (power law)
           </h3>
           <PowerLawChart data={data} eventCount={eventCount} large />
+          {powerFit && (
+            <div className="chart-equation" aria-label="Power-law equation">
+              <span className="chart-equation-label">Fitted equation</span>
+              <code className="chart-equation-math">
+                {formatPowerLawEquation(powerFit)}
+              </code>
+              <span className="chart-equation-hint">
+                In plain words: small quakes show up a lot; big ones show up
+                much less often. If one quake is 10 times bigger, you should see
+                it about {Math.pow(10, powerFit.alpha).toFixed(1)} times less
+                often (from this fit).
+              </span>
+            </div>
+          )}
           <div className="chart-modal-legend">
             <p>
               <strong>Across → Avalanche size</strong> — how many cells broke in
@@ -96,15 +114,6 @@ export function SizeFrequencyModal({
               recorded, what fraction had this size. Example: 0.10 means about 1
               in 10 quakes was this big.
             </p>
-            <p>
-              <strong>Blue line</strong> is the best straight line on this log–log
-              chart:{' '}
-              <em>
-                share ≈ constant / size
-                {powerFit ? `^${powerFit.alpha.toFixed(2)}` : '^α'}
-              </em>
-              . Many small avalanches, few large ones.
-            </p>
           </div>
         </section>
 
@@ -114,23 +123,28 @@ export function SizeFrequencyModal({
             {grFit ? ` · b ≈ ${grFit.b.toFixed(2)}` : ''}
           </h3>
           <GutenbergRichterChart data={data} eventCount={eventCount} large />
+          {grFit && (
+            <div className="chart-equation" aria-label="Gutenberg-Richter equation">
+              <span className="chart-equation-label">Fitted equation</span>
+              <code className="chart-equation-math">
+                {formatGrEquation(grFit)}
+              </code>
+              <span className="chart-equation-hint">
+                In plain words: for each step up in magnitude, there are fewer
+                quakes that big or bigger. The number b ≈ {grFit.b.toFixed(2)}{' '}
+                says how quickly that drop-off happens.
+              </span>
+            </div>
+          )}
           <div className="chart-modal-legend">
             <p>
-              <strong>Across → Model magnitude</strong> — a log label for size:{' '}
-              <em>M = log₁₀(avalanche size)</em>. Bigger cascade → higher M. This
-              is a teaching stand-in, not a real seismograph Richter reading.
+              <strong>Across → Model magnitude</strong> —{' '}
+              <em>M = log10(avalanche size)</em>. Bigger cascade → higher M.
+              Teaching stand-in, not a real seismograph reading.
             </p>
             <p>
               <strong>Up → Quakes this big or bigger</strong> — cumulative count
-              of avalanches at least that magnitude (how catalogs often talk).
-            </p>
-            <p>
-              <strong>Blue line</strong> is the Gutenberg–Richter-style fit:{' '}
-              <em>
-                log₁₀(N) ≈ a − b·M
-                {grFit ? ` with b ≈ ${grFit.b.toFixed(2)}` : ''}
-              </em>
-              . A steeper b means large events are rarer relative to small ones.
+              of avalanches at least that magnitude.
             </p>
           </div>
         </section>

@@ -91,3 +91,10 @@ export function fitGutenbergRichter(points: GrPoint[]): GrFit | null {
     predict: (magnitude: number) => 10 ** (a - b * magnitude),
   }
 }
+
+/** Plain, readable Gutenberg–Richter equation for the UI. */
+export function formatGrEquation(fit: GrFit): string {
+  const a = fit.a.toFixed(2)
+  const b = fit.b.toFixed(2)
+  return `log10(N) ≈ ${a} − ${b} × M`
+}

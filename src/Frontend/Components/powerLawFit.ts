@@ -50,11 +50,21 @@ export function fitPowerLaw(
   const slope = (n * sumXY - sumX * sumY) / denom
   const intercept = (sumY - slope * sumX) / n
 
+  const alpha = -slope
   return {
     intercept,
     slope,
-    alpha: -slope,
+    alpha,
     pointCount: n,
     predict: (size: number) => 10 ** (intercept + slope * Math.log10(size)),
   }
+}
+
+/** Plain, readable equation string for the UI. */
+export function formatPowerLawEquation(fit: PowerLawFit): string {
+  const alpha = fit.alpha.toFixed(2)
+  const c = Math.pow(10, fit.intercept)
+  const cStr =
+    c >= 0.01 && c < 100 ? c.toFixed(3) : c.toExponential(2)
+  return `share ≈ ${cStr} / size^${alpha}`
 }

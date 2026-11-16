@@ -172,8 +172,7 @@ function paintChart(
     ctx.fillStyle = '#5ec8ff'
     ctx.font = `${large ? 12 : 11}px "Segoe UI", sans-serif`
     ctx.textAlign = 'left'
-    const label = `Power-law fit  ·  share ∝ 1 / size^${fit.alpha.toFixed(2)}`
-    ctx.fillText(label, pad.left + 8, pad.top + 16)
+    ctx.fillText('Blue line = power-law fit (equation below)', pad.left + 8, pad.top + 16)
   }
 
   // Measured data: each dot is normalized frequency for that size.

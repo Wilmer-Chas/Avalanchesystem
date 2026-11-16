@@ -168,7 +168,7 @@ function paintChart(
     ctx.font = `${large ? 12 : 11}px "Segoe UI", sans-serif`
     ctx.textAlign = 'left'
     ctx.fillText(
-      `Gutenberg–Richter fit  ·  b ≈ ${fit.b.toFixed(2)}`,
+      'Blue line = Gutenberg–Richter fit (equation below)',
       pad.left + 8,
       pad.top + 16,
     )
